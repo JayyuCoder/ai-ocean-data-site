@@ -5,13 +5,17 @@ from tensorflow.keras.layers import LSTM, Dense
 
 # ===== ANOMALY DETECTION =====
 def health_score(row):
-    score = row["reef_health_baseline"] - (row["sst"] * 1.5 + row["dhw"] * 5)
+    baseline = row.get("reef_health_baseline", 80)
+    dhw = row.get("dhw", 0)
+    score = baseline - (row["sst"] * 1.5 + dhw * 5)
     return max(score, 0)
 
 def detect_anomaly(series):
+    if len(series) < 2:
+        return np.array([False] * len(series))
     model = IsolationForest(contamination=0.1)
     preds = model.fit_predict(series.values.reshape(-1, 1))
-    return preds[-1] == -1
+    return preds == -1
 
 # ===== LSTM FORECASTING =====
 def build_lstm(input_shape=(30, 1)):

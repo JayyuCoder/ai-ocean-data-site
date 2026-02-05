@@ -4,8 +4,6 @@ from sqlalchemy.orm import Session
 from backend.database import SessionLocal, init_db, get_db
 from backend.models import OceanMetrics
 from datetime import datetime, timedelta
-# geopandas optional for spatial operations; only needed for pipeline/merge_data.py
-# import geopandas as gpd
 
 app = FastAPI(
     title="AI Ocean Data API",
@@ -28,9 +26,9 @@ def startup_event():
     try:
         init_db()
     except Exception as e:
-        print(f"⚠️  Database initialization skipped: {type(e).__name__}")
-        print("   Running in demo mode without persistent storage")
-        print("   To enable full features, ensure PostgreSQL is running on localhost:5432")
+        print(f"WARNING: Database initialization skipped: {type(e).__name__}")
+        print("Running in demo mode without persistent storage")
+        print("To enable full features, ensure PostgreSQL is running on localhost:5432")
 
 @app.get("/")
 async def root():
@@ -69,7 +67,7 @@ async def get_timeseries(days: int = 30, db: Session = Depends(get_db)):
     records = db.query(OceanMetrics).filter(
         OceanMetrics.date >= cutoff_date
     ).order_by(OceanMetrics.date).all()
-    
+
     return [
         {
             "date": r.date.isoformat(),
@@ -89,7 +87,7 @@ async def get_anomalies(db: Session = Depends(get_db)):
     anomalies = db.query(OceanMetrics).filter(
         OceanMetrics.anomaly == True
     ).order_by(OceanMetrics.date.desc()).limit(50).all()
-    
+
     return [
         {
             "date": a.date.isoformat(),
@@ -104,15 +102,15 @@ async def get_anomalies(db: Session = Depends(get_db)):
 @app.get("/stats")
 async def get_statistics(db: Session = Depends(get_db)):
     """Get aggregate statistics"""
-    from sqlalchemy import func
-    
+    from sqlalchemy import func, case
+
     stats = db.query(
         func.avg(OceanMetrics.sst).label("avg_sst"),
         func.avg(OceanMetrics.ph).label("avg_ph"),
         func.avg(OceanMetrics.health_score).label("avg_health"),
-        func.count(OceanMetrics.anomaly).label("anomaly_count")
+        func.sum(case((OceanMetrics.anomaly == True, 1), else_=0)).label("anomaly_count")
     ).first()
-    
+
     return {
         "avg_sst": float(stats.avg_sst or 0),
         "avg_ph": float(stats.avg_ph or 0),

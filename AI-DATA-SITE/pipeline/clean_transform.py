@@ -1,6 +1,8 @@
 def clean_noaa(df):
     df = df.dropna()
     df["sst"] = df["sst"].clip(lower=0)
+    if "dhw" not in df.columns:
+        df["dhw"] = 0.0
     df["dhw"] = df["dhw"].clip(lower=0)
     return df
 

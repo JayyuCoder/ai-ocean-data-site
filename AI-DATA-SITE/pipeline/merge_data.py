@@ -10,7 +10,11 @@ def spatial_merge(noaa_df):
     Spatial join: NOAA points with Coral Reef polygons from PostGIS
     """
     # Load reef polygons from PostGIS
-    reefs = gpd.read_postgis("SELECT * FROM coral_reefs", engine, geom_col="geom")
+    try:
+        reefs = gpd.read_postgis("SELECT * FROM coral_reefs", engine, geom_col="geom")
+    except Exception as e:
+        print(f"WARNING: PostGIS unavailable ({type(e).__name__}); skipping spatial merge")
+        return noaa_df
     
     # Convert NOAA dataframe to GeoDataFrame with point geometry
     noaa_gdf = gpd.GeoDataFrame(
@@ -29,6 +33,6 @@ def integrate_ph(noaa_df, ph_df):
     """
     return noaa_df.merge(
         ph_df,
-        on=["latitude", "longitude", "date"],
+        on=["lat", "lon", "date"],
         how="left"
     )
