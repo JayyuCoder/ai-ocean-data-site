@@ -8,5 +8,9 @@ def clean_noaa(df):
 
 def clean_allen(df):
     df = df.dropna()
-    df["reef_health_baseline"] = df["reef_health_baseline"].clip(0, 100)
+    if "reef_health_baseline" in df.columns:
+        df["reef_health_baseline"] = df["reef_health_baseline"].clip(0, 100)
+    else:
+        # Default baseline if not provided by WFS layer
+        df["reef_health_baseline"] = 80
     return df

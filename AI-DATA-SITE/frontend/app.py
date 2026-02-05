@@ -14,7 +14,7 @@ st.title("Coral Reef Health Monitor")
 st.markdown("Real-time AI-powered ocean health monitoring")
 
 # API Base URL
-API_URL = "http://localhost:8000"
+API_URL = "http://localhost:8003"
 
 # Sidebar
 with st.sidebar:

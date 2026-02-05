@@ -1,5 +1,8 @@
 import os
 import sys
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Allow running as a script: python pipeline/run_pipeline.py
 if __name__ == "__main__" and __package__ is None:
@@ -12,7 +15,9 @@ from pipeline.merge_data import spatial_merge, integrate_ph
 from ml.model import health_score, detect_anomaly, train_lstm, forecast_lstm
 import backend.database as db
 from backend.models import OceanMetrics
-import pandas as pd
+
+FAST_MODE = True
+MAX_ROWS_FAST = 5000
 
 def run_daily_pipeline():
     """
@@ -32,49 +37,51 @@ def run_daily_pipeline():
     ph = fetch_noaa_ph()
 
     print("Step 2: Fetching Allen Coral Atlas...")
-    allen = fetch_allen_coral_atlas()
+    allen = fetch_allen_coral_atlas(noaa_df=noaa)
 
-    # Step 2: Clean
+    # Step 3: Cleaning data
     print("Step 3: Cleaning data...")
     noaa = clean_noaa(noaa)
     allen = clean_allen(allen)
 
-    # Step 3: Integrate pH data
+    # Step 4: Integrating pH data
     print("Step 4: Integrating pH data...")
     merged = integrate_ph(noaa, ph)
 
-    # Step 4: Spatial merge with PostGIS
+    # Step 5: Spatial merge
     print("Step 5: Spatial merge with coral reefs...")
-    merged = spatial_merge(merged)
+    merged = spatial_merge(merged, allen_gdf=allen)
 
-    # Step 5: ML Predictions
+    # Fast-mode cap
+    if FAST_MODE and len(merged) > MAX_ROWS_FAST:
+        merged = merged.sample(MAX_ROWS_FAST, random_state=42)
+
+    # Step 6: ML Predictions
     print("Step 6: Running ML predictions...")
-
-    # Health score
     merged["health_score"] = merged.apply(health_score, axis=1)
 
-    # LSTM forecasting for pH (next 7 days)
     merged["forecast_ph"] = None
-    if len(merged) >= 30 and merged["ph"].notna().sum() >= 30:
+    if not FAST_MODE and len(merged) >= 30 and merged["ph"].notna().sum() >= 30:
         try:
             lstm_model = train_lstm(merged["ph"].values)
             forecast = forecast_lstm(lstm_model, merged["ph"].values, steps_ahead=7)
-            # Store the next-step forecast on the latest row
             merged.loc[merged.index[-1], "forecast_ph"] = float(forecast[0])
         except Exception as e:
             print(f"LSTM forecast error: {e}")
 
-    # Anomaly detection
     merged["anomaly"] = detect_anomaly(merged["sst"])
 
-    # Step 6: Store to PostgreSQL
+    # Step 7: Store to PostgreSQL (batch insert)
     print("Step 7: Storing to PostgreSQL...")
     db.init_db()
     if db.SessionLocal is None:
         raise RuntimeError("Database session not initialized")
+
     db_session = db.SessionLocal()
+
+    records = []
     for _, row in merged.iterrows():
-        record = OceanMetrics(
+        records.append(OceanMetrics(
             date=row["date"],
             latitude=row["lat"],
             longitude=row["lon"],
@@ -84,9 +91,9 @@ def run_daily_pipeline():
             health_score=row["health_score"],
             anomaly=row["anomaly"],
             forecast_ph=row.get("forecast_ph", None),
-        )
-        db_session.add(record)
+        ))
 
+    db_session.bulk_save_objects(records)
     db_session.commit()
     db_session.close()
     print("Pipeline completed successfully!")
