@@ -1,0 +1,31 @@
+﻿name: ai-ocean
+channels:
+  - conda-forge
+dependencies:
+  - python=3.10
+  - pip
+  - pandas
+  - numpy
+  - geopandas
+  - gdal
+  - fiona
+  - shapely
+  - rtree
+  - pyproj
+  - xarray
+  - netCDF4
+  - scikit-learn
+  - sqlalchemy
+  - psycopg2
+  - pip:
+    - fastapi
+    - uvicorn[standard]
+    - tensorflow
+    - keras
+    - streamlit
+    - pydeck
+    - plotly
+    - requests
+    - python-dotenv
+    - python-dateutil
+    - openpyxl

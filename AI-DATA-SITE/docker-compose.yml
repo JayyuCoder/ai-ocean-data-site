@@ -1,0 +1,46 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgis/postgis:15-3.3
+    container_name: ocean_db
+    environment:
+      POSTGRES_USER: ocean_user
+      POSTGRES_PASSWORD: ocean_secure_password
+      POSTGRES_DB: ocean_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - ocean_network
+
+  api:
+    build: .
+    container_name: ocean_api
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://ocean_user:ocean_secure_password@db:5432/ocean_db
+    depends_on:
+      - db
+    networks:
+      - ocean_network
+
+  scheduler:
+    build: .
+    container_name: ocean_scheduler
+    command: python scheduler/scheduler.py
+    environment:
+      DATABASE_URL: postgresql://ocean_user:ocean_secure_password@db:5432/ocean_db
+    depends_on:
+      - db
+    networks:
+      - ocean_network
+
+volumes:
+  postgres_data:
+
+networks:
+  ocean_network:
+    driver: bridge
