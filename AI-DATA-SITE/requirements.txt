@@ -5,12 +5,13 @@ numpy
 scikit-learn
 xarray
 netCDF4
-tensorflow
-keras
+tensorflow>=2.15,<3.0
+keras>=2.15,<3.0
 
 # Database
 sqlalchemy>=2.0
 psycopg[binary]>=3.3
+psycopg-pool>=3.2
 
 # API & backend
 fastapi
@@ -21,7 +22,7 @@ python-dotenv
 # Visualization
 plotly
 pydeck
-# streamlit  # installed separately to avoid interactive onboarding during pip install
+# streamlit  # installed separately to avoid interactive onboarding
 
 # Geospatial / scientific (optional / local demos)
 geopandas
