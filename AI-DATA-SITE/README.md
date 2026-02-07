@@ -72,6 +72,27 @@ To start all services (backend, frontend, scheduler) in background:
 
 If you don't want the full TensorFlow/Postgres pipeline, the scheduler will automatically prefer the `run_pipeline_light.py` runner which uses only local SQLite and lighter deps.
 
+## 🚢 Local Monitoring with Docker Compose
+
+To run Prometheus + Grafana locally (provisioned to scrape the app and metrics server):
+
+```bash
+cd deploy
+docker-compose -f docker-compose-grafana.yml up -d
+```
+
+Grafana: http://localhost:3000 (admin/admin)
+Prometheus: http://localhost:9090
+
+The Grafana dashboard is pre-provisioned and will appear after Grafana starts.
+
+## ⚙️ Automated Kubernetes Deploy
+
+To enable automated deploys to your Kubernetes cluster, set a repository secret `KUBE_CONFIG` containing your kubeconfig file base64-encoded.
+
+Then pushes to `main` will trigger `.github/workflows/deploy-to-k8s.yml` which applies manifests under `deploy/k8s/`.
+
+
 ## 📊 Project Structure
 
 ```
