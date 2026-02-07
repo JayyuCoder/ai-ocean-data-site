@@ -1,122 +1,122 @@
 {
-  "dashboard": {
-    "id": null,
-    "uid": "ocean-live",
-    "title": "AI Ocean Live Dashboard",
-    "description": "Real-time coral reef monitoring with dynamic filters",
-    "tags": ["ocean", "coral", "monitoring", "live"],
-    "timezone": "browser",
-    "panels": [
-      {
-        "id": 1,
-        "type": "stat",
-        "title": "Average SST (°C)",
-        "targets": [
-          {"expr": "ocean_avg_sst_celsius", "refId": "A"}
-        ],
-        "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
-        "fieldConfig": {
-          "defaults": {
-            "min": 20,
-            "max": 35,
-            "unit": "short",
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {"color": "blue", "value": null},
-                {"color": "green", "value": 27},
-                {"color": "yellow", "value": 29},
-                {"color": "red", "value": 31}
-              ]
-            }
-          }
-        }
-      },
-      {
-        "id": 2,
-        "type": "stat",
-        "title": "Average pH",
-        "targets": [
-          {"expr": "ocean_avg_ph", "refId": "A"}
-        ],
-        "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4},
-        "fieldConfig": {
-          "defaults": {
-            "min": 7.5,
-            "max": 8.5,
-            "unit": "short"
-          }
-        }
-      },
-      {
-        "id": 3,
-        "type": "stat",
-        "title": "Coral Health Score",
-        "targets": [
-          {"expr": "ocean_avg_health_score", "refId": "A"}
-        ],
-        "gridPos": {"x": 12, "y": 0, "w": 6, "h": 4},
-        "fieldConfig": {
-          "defaults": {
-            "min": 0,
-            "max": 100,
-            "unit": "percent"
-          }
-        }
-      },
-      {
-        "id": 4,
-        "type": "stat",
-        "title": "Total Records",
-        "targets": [
-          {"expr": "ocean_records_total", "refId": "A"}
-        ],
-        "gridPos": {"x": 18, "y": 0, "w": 6, "h": 4}
-      },
-      {
-        "id": 5,
-        "type": "timeseries",
-        "title": "SST Trend (Last 7 Days)",
-        "targets": [
-          {"expr": "ocean_avg_sst_celsius", "refId": "A", "legendFormat": "SST"}
-        ],
-        "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8},
-        "fieldConfig": {
-          "defaults": {"unit": "short"}
-        }
-      },
-      {
-        "id": 6,
-        "type": "timeseries",
-        "title": "pH Trend (Last 7 Days)",
-        "targets": [
-          {"expr": "ocean_avg_ph", "refId": "A", "legendFormat": "pH"}
-        ],
-        "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8},
-        "fieldConfig": {
-          "defaults": {"unit": "short"}
-        }
-      },
-      {
-        "id": 7,
-        "type": "timeseries",
-        "title": "Health Score Trend (Last 7 Days)",
-        "targets": [
-          {"expr": "ocean_avg_health_score", "refId": "A", "legendFormat": "Health"}
-        ],
-        "gridPos": {"x": 0, "y": 12, "w": 24, "h": 6},
-        "fieldConfig": {
-          "defaults": {"unit": "percent"}
+  "id": null,
+  "uid": "ocean-live",
+  "title": "AI Ocean Live Dashboard",
+  "description": "Real-time coral reef monitoring with dynamic filters",
+  "tags": ["ocean", "coral", "monitoring", "live"],
+  "timezone": "browser",
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Average SST (°C)",
+      "targets": [
+        {"expr": "ocean_avg_sst_celsius", "refId": "A", "datasourceUid": "prometheus"}
+      ],
+      "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {}
         }
       }
-    ],
-    "schemaVersion": 35,
-    "version": 2,
-    "refresh": "5s",
-    "time": {"from": "now-7d", "to": "now"},
-    "timepicker": {
-      "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "1d"]
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Average pH",
+      "targets": [
+        {"expr": "ocean_avg_ph", "refId": "A", "datasourceUid": "prometheus"}
+      ],
+      "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {}
+        }
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Coral Health Score",
+      "targets": [
+        {"expr": "ocean_avg_health_score", "refId": "A", "datasourceUid": "prometheus"}
+      ],
+      "gridPos": {"x": 12, "y": 0, "w": 6, "h": 4},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "custom": {}
+        }
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Total Records",
+      "targets": [
+        {"expr": "ocean_records_total", "refId": "A", "datasourceUid": "prometheus"}
+      ],
+      "gridPos": {"x": 18, "y": 0, "w": 6, "h": 4},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {}
+        }
+      }
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "SST Trend",
+      "targets": [
+        {"expr": "ocean_avg_sst_celsius", "refId": "A"}
+      ],
+      "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {"lineWidth": 2}
+        }
+      }
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "pH Trend",
+      "targets": [
+        {"expr": "ocean_avg_ph", "refId": "A"}
+      ],
+      "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {"lineWidth": 2}
+        }
+      }
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Health Score Trend",
+      "targets": [
+        {"expr": "ocean_avg_health_score", "refId": "A"}
+      ],
+      "gridPos": {"x": 0, "y": 12, "w": 24, "h": 6},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "custom": {"lineWidth": 2}
+        }
+      }
     }
-  },
-  "overwrite": true
+  ],
+  "schemaVersion": 35,
+  "version": 3,
+  "refresh": "5s",
+  "time": {"from": "now-7d", "to": "now"},
+  "timepicker": {
+    "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "1d"]
+  }
 }
