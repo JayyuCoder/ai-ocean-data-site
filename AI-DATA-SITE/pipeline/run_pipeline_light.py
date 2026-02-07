@@ -13,6 +13,8 @@ import pandas as pd
 
 import backend.database as db
 from backend.models import OceanMetrics
+from sqlalchemy import inspect
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 # instrumentation
 try:
@@ -78,6 +80,12 @@ def run_light_pipeline():
     print(f"[light pipeline] Inserting {len(records)} rows into SQLite DB...")
     db.init_db()
     session = db.SessionLocal()
+    # detect if backing engine is Postgres to use upsert
+    dialect_name = None
+    try:
+        dialect_name = db.engine.dialect.name
+    except Exception:
+        pass
     for rec in records:
         # ensure date is date object
         if isinstance(rec.get("date"), str):
@@ -86,28 +94,36 @@ def run_light_pipeline():
             except Exception:
                 rec["date"] = date.today()
 
-        om = OceanMetrics(
-            date=rec.get("date"),
-            latitude=float(rec.get("latitude", 0)),
-            longitude=float(rec.get("longitude", 0)),
-            sst=float(rec.get("sst", 0)),
-            dhw=float(rec.get("dhw", 0)),
-            ph=rec.get("ph"),
-            health_score=float(rec.get("health_score", 0)),
-            anomaly=bool(rec.get("anomaly", False)),
-            forecast_ph=rec.get("forecast_ph", None),
-        )
-        session.add(om)
+        payload = {
+            "date": rec.get("date"),
+            "latitude": float(rec.get("latitude", 0)),
+            "longitude": float(rec.get("longitude", 0)),
+            "sst": float(rec.get("sst", 0)),
+            "dhw": float(rec.get("dhw", 0)),
+            "ph": rec.get("ph"),
+            "health_score": float(rec.get("health_score", 0)),
+            "anomaly": bool(rec.get("anomaly", False)),
+            "forecast_ph": rec.get("forecast_ph", None),
+        }
+        if dialect_name == "postgresql":
+            # perform upsert using ON CONFLICT on (date, latitude, longitude)
+            table = OceanMetrics.__table__
+            stmt = pg_insert(table).values(**payload)
+            update_cols = {c.name: stmt.excluded[c.name] for c in table.c if c.name not in ("id",)}
+            stmt = stmt.on_conflict_do_update(index_elements=["date", "latitude", "longitude"],
+                                              set_=update_cols)
+            session.execute(stmt)
+        else:
+            om = OceanMetrics(**payload)
+            session.add(om)
     try:
         session.commit()
-        print(f"[light pipeline] Inserted {len(records)} rows")
+        print(f"[light pipeline] Inserted/updated {len(records)} rows")
     except Exception as e:
         session.rollback()
         print(f"[light pipeline] Error committing rows: {e}")
     finally:
         session.close()
-    session.commit()
-    session.close()
 
     print("[light pipeline] Completed successfully.")
     if timer:
