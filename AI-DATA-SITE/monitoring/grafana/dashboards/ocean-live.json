@@ -5,13 +5,20 @@
   "description": "Real-time coral reef monitoring with dynamic filters",
   "tags": ["ocean", "coral", "monitoring", "live"],
   "timezone": "browser",
+  "schemaVersion": 35,
+  "version": 4,
+  "refresh": "5s",
+  "time": {"from": "now-7d", "to": "now"},
+  "timepicker": {
+    "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "1d"]
+  },
   "panels": [
     {
       "id": 1,
       "type": "stat",
       "title": "Average SST (°C)",
       "targets": [
-        {"expr": "ocean_avg_sst_celsius", "refId": "A", "datasourceUid": "prometheus"}
+        {"expr": "ocean_avg_sst_celsius", "refId": "A"}
       ],
       "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
       "fieldConfig": {
@@ -26,7 +33,7 @@
       "type": "stat",
       "title": "Average pH",
       "targets": [
-        {"expr": "ocean_avg_ph", "refId": "A", "datasourceUid": "prometheus"}
+        {"expr": "ocean_avg_ph", "refId": "A"}
       ],
       "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4},
       "fieldConfig": {
@@ -41,7 +48,7 @@
       "type": "stat",
       "title": "Coral Health Score",
       "targets": [
-        {"expr": "ocean_avg_health_score", "refId": "A", "datasourceUid": "prometheus"}
+        {"expr": "ocean_avg_health_score", "refId": "A"}
       ],
       "gridPos": {"x": 12, "y": 0, "w": 6, "h": 4},
       "fieldConfig": {
@@ -56,7 +63,7 @@
       "type": "stat",
       "title": "Total Records",
       "targets": [
-        {"expr": "ocean_records_total", "refId": "A", "datasourceUid": "prometheus"}
+        {"expr": "ocean_records_total", "refId": "A"}
       ],
       "gridPos": {"x": 18, "y": 0, "w": 6, "h": 4},
       "fieldConfig": {
@@ -69,9 +76,9 @@
     {
       "id": 5,
       "type": "timeseries",
-      "title": "SST Trend",
+      "title": "SST Trend (7 Days)",
       "targets": [
-        {"expr": "ocean_avg_sst_celsius", "refId": "A"}
+        {"expr": "ocean_avg_sst_celsius", "refId": "A", "legendFormat": "SST"}
       ],
       "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8},
       "fieldConfig": {
@@ -79,14 +86,17 @@
           "unit": "short",
           "custom": {"lineWidth": 2}
         }
+      },
+      "options": {
+        "legend": {"showLegend": true, "placement": "bottom"}
       }
     },
     {
       "id": 6,
       "type": "timeseries",
-      "title": "pH Trend",
+      "title": "pH Trend (7 Days)",
       "targets": [
-        {"expr": "ocean_avg_ph", "refId": "A"}
+        {"expr": "ocean_avg_ph", "refId": "A", "legendFormat": "pH"}
       ],
       "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8},
       "fieldConfig": {
@@ -94,14 +104,17 @@
           "unit": "short",
           "custom": {"lineWidth": 2}
         }
+      },
+      "options": {
+        "legend": {"showLegend": true, "placement": "bottom"}
       }
     },
     {
       "id": 7,
       "type": "timeseries",
-      "title": "Health Score Trend",
+      "title": "Health Score Trend (7 Days)",
       "targets": [
-        {"expr": "ocean_avg_health_score", "refId": "A"}
+        {"expr": "ocean_avg_health_score", "refId": "A", "legendFormat": "Health"}
       ],
       "gridPos": {"x": 0, "y": 12, "w": 24, "h": 6},
       "fieldConfig": {
@@ -109,14 +122,10 @@
           "unit": "percent",
           "custom": {"lineWidth": 2}
         }
+      },
+      "options": {
+        "legend": {"showLegend": true, "placement": "bottom"}
       }
     }
-  ],
-  "schemaVersion": 35,
-  "version": 3,
-  "refresh": "5s",
-  "time": {"from": "now-7d", "to": "now"},
-  "timepicker": {
-    "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "1d"]
-  }
+  ]
 }
