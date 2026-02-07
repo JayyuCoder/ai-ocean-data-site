@@ -60,6 +60,18 @@ streamlit run frontend/app.py
 
 Access at `http://localhost:8501`
 
+## 🛠️ Lightweight Scheduler & Services
+
+This repo includes a lightweight scheduler that will run the pipeline daily.
+
+To start all services (backend, frontend, scheduler) in background:
+
+```bash
+./scripts/run_services.sh
+```
+
+If you don't want the full TensorFlow/Postgres pipeline, the scheduler will automatically prefer the `run_pipeline_light.py` runner which uses only local SQLite and lighter deps.
+
 ## 📊 Project Structure
 
 ```
