@@ -5,11 +5,19 @@
     "panels": [
       {
         "type": "graph",
-        "title": "Average SST",
+        "title": "Pipeline Runs",
         "targets": [
           {"expr": "ai_pipeline_runs_total"}
         ],
         "gridPos": {"x": 0, "y": 0, "w": 12, "h": 6}
+      },
+      {
+        "type": "graph",
+        "title": "Average SST (sample)",
+        "targets": [
+          {"expr": "avg(ai_pipeline_runs_total)"}
+        ],
+        "gridPos": {"x": 12, "y": 0, "w": 12, "h": 6}
       }
     ],
     "schemaVersion": 16
