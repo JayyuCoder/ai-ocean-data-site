@@ -19,3 +19,11 @@ scrape_configs:
       - targets: ['172.18.0.1:8501']
         labels:
           role: frontend
+
+rule_files:
+  - /etc/prometheus/rules/alert_rules.yml
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ['alertmanager:9093']

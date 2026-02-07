@@ -1,0 +1,19 @@
+groups:
+  - name: ai-ocean-alerts
+    rules:
+      - alert: HighSST
+        expr: ocean_avg_sst_celsius > 29
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High sea surface temperature detected ({{ $value }})"
+          description: "Average SST exceeded 29°C for more than 10 minutes."
+      - alert: ManyAnomalies
+        expr: increase(ocean_records_total[1h]) > 100
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Spike in data points detected"
+          description: "More than 100 new records in the last hour."
