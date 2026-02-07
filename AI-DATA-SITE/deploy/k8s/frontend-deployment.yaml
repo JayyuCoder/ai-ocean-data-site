@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ai-frontend
+  template:
+    metadata:
+      labels:
+        app: ai-frontend
+    spec:
+      containers:
+      - name: frontend
+        image: ghcr.io/boya9j/ai-ocean-data-site:latest
+        command: ["streamlit", "run", "frontend/app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+        ports:
+        - containerPort: 8501

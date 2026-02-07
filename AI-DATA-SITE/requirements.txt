@@ -32,3 +32,6 @@ pyproj
 # Utilities
 python-dateutil
 openpyxl
+
+# Monitoring
+prometheus-client
