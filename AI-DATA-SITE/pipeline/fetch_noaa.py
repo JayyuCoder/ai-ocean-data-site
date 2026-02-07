@@ -5,6 +5,44 @@ import pandas as pd
 from datetime import date, timedelta
 from pathlib import Path
 from dotenv import load_dotenv
+import time
+
+def _retry_get(url, timeout=60, max_retries=3, backoff_factor=2):
+    """Download URL with exponential backoff retry logic."""
+    for attempt in range(max_retries):
+        try:
+            r = requests.get(url, timeout=timeout)
+            if r.status_code == 200:
+                return r
+            elif r.status_code in (429, 503):  # Too Many Requests, Service Unavailable
+                if attempt < max_retries - 1:
+                    wait_time = backoff_factor ** attempt
+                    print(f"[fetch_noaa] HTTP {r.status_code}, retrying in {wait_time}s...")
+                    time.sleep(wait_time)
+                    continue
+            return None
+        except requests.exceptions.Timeout:
+            if attempt < max_retries - 1:
+                wait_time = backoff_factor ** attempt
+                print(f"[fetch_noaa] Timeout, retrying in {wait_time}s...")
+                time.sleep(wait_time)
+                continue
+            return None
+        except requests.exceptions.ConnectionError:
+            if attempt < max_retries - 1:
+                wait_time = backoff_factor ** attempt
+                print(f"[fetch_noaa] Connection error, retrying in {wait_time}s...")
+                time.sleep(wait_time)
+                continue
+            return None
+        except Exception as e:
+            if attempt < max_retries - 1:
+                wait_time = backoff_factor ** attempt
+                print(f"[fetch_noaa] Error ({type(e).__name__}), retrying in {wait_time}s...")
+                time.sleep(wait_time)
+                continue
+            return None
+    return None
 
 load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
@@ -24,15 +62,15 @@ def _candidate_dates(days_back=3):
 def _download(url, path):
     if os.path.exists(path):
         return True
-    try:
-        r = requests.get(url, timeout=60)
-        if r.status_code == 200:
+    r = _retry_get(url, timeout=60, max_retries=3)
+    if r is not None:
+        try:
             with open(path, "wb") as f:
                 f.write(r.content)
             return True
-        return False
-    except Exception:
-        return False
+        except Exception as e:
+            print(f"[fetch_noaa] Error writing {path}: {e}")
+    return False
 
 def _download_latest(base_url, fname_tmpl, prefix):
     for d in _candidate_dates():
@@ -111,13 +149,14 @@ def fetch_noaa_ph():
     ph_url = os.getenv("NOAA_PH_URL", "")
 
     if ph_url and not os.path.exists(ph_path):
-        try:
-            r = requests.get(ph_url, timeout=30)
-            r.raise_for_status()
-            with open(ph_path, "wb") as f:
-                f.write(r.content)
-        except Exception:
-            pass
+        r = _retry_get(ph_url, timeout=30, max_retries=3)
+        if r is not None:
+            try:
+                with open(ph_path, "wb") as f:
+                    f.write(r.content)
+            except Exception as e:
+                print(f"[fetch_noaa_ph] Error writing {ph_path}: {e}")
+                pass
 
     if not os.path.exists(ph_path):
         return pd.DataFrame(

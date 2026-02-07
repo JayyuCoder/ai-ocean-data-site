@@ -5,6 +5,44 @@ import geopandas as gpd
 import shapely.geometry as geom
 from pathlib import Path
 from dotenv import load_dotenv
+import time
+
+def _retry_get(url, params=None, headers=None, timeout=60, max_retries=3, backoff_factor=2):
+    """HTTP GET with exponential backoff retry logic."""
+    for attempt in range(max_retries):
+        try:
+            r = requests.get(url, params=params, headers=headers, timeout=timeout)
+            if r.status_code == 200:
+                return r
+            elif r.status_code in (429, 503):  # Too Many Requests, Service Unavailable
+                if attempt < max_retries - 1:
+                    wait_time = backoff_factor ** attempt
+                    print(f"[fetch] HTTP {r.status_code}, retrying in {wait_time}s...")
+                    time.sleep(wait_time)
+                    continue
+            return None
+        except requests.exceptions.Timeout:
+            if attempt < max_retries - 1:
+                wait_time = backoff_factor ** attempt
+                print(f"[fetch] Timeout, retrying in {wait_time}s...")
+                time.sleep(wait_time)
+                continue
+            return None
+        except requests.exceptions.ConnectionError:
+            if attempt < max_retries - 1:
+                wait_time = backoff_factor ** attempt
+                print(f"[fetch] Connection error, retrying in {wait_time}s...")
+                time.sleep(wait_time)
+                continue
+            return None
+        except Exception as e:
+            if attempt < max_retries - 1:
+                wait_time = backoff_factor ** attempt
+                print(f"[fetch] Error ({type(e).__name__}), retrying in {wait_time}s...")
+                time.sleep(wait_time)
+                continue
+            return None
+    return None
 
 load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
@@ -61,15 +99,17 @@ def fetch_allen_coral_atlas(noaa_df=None):
         params["bbox"] = f"{bbox[0]},{bbox[1]},{bbox[2]},{bbox[3]}"
 
     try:
-        r = requests.get(
+        r = _retry_get(
             wfs_url,
             params=params,
             headers={"User-Agent": "AI-Ocean-Data-Site/1.0"},
-            timeout=60
+            timeout=60,
+            max_retries=3
         )
-        if r.status_code != 200:
-            print("Allen WFS status:", r.status_code)
-            print("Allen WFS response:", r.text[:300])
+        if r is None or r.status_code != 200:
+            if r:
+                print("Allen WFS status:", r.status_code)
+                print("Allen WFS response:", r.text[:300])
             return _fallback_gdf()
 
         data = r.json()
