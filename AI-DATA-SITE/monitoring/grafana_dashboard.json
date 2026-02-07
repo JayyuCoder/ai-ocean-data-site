@@ -1,25 +1,107 @@
 {
   "dashboard": {
     "id": null,
+    "uid": "ocean-overview",
     "title": "AI Ocean Overview",
+    "tags": ["ocean", "coral", "monitoring"],
     "panels": [
       {
-        "type": "graph",
-        "title": "Pipeline Runs",
+        "type": "stat",
+        "title": "Average SST (°C)",
         "targets": [
-          {"expr": "ai_pipeline_runs_total"}
+          {"expr": "ocean_avg_sst_celsius"}
         ],
-        "gridPos": {"x": 0, "y": 0, "w": 12, "h": 6}
+        "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
+        "fieldConfig": {
+          "defaults": {
+            "min": 20,
+            "max": 35,
+            "unit": "short",
+            "custom": {}
+          }
+        }
       },
       {
-        "type": "graph",
-        "title": "Average SST (sample)",
+        "type": "stat",
+        "title": "Average pH",
         "targets": [
-          {"expr": "avg(ai_pipeline_runs_total)"}
+          {"expr": "ocean_avg_ph"}
         ],
-        "gridPos": {"x": 12, "y": 0, "w": 12, "h": 6}
+        "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4},
+        "fieldConfig": {
+          "defaults": {
+            "min": 7.5,
+            "max": 8.5,
+            "unit": "short",
+            "custom": {}
+          }
+        }
+      },
+      {
+        "type": "stat",
+        "title": "Average Coral Health Score",
+        "targets": [
+          {"expr": "ocean_avg_health_score"}
+        ],
+        "gridPos": {"x": 12, "y": 0, "w": 6, "h": 4},
+        "fieldConfig": {
+          "defaults": {
+            "min": 0,
+            "max": 100,
+            "unit": "percent",
+            "custom": {}
+          }
+        }
+      },
+      {
+        "type": "stat",
+        "title": "Total Records",
+        "targets": [
+          {"expr": "ocean_records_total"}
+        ],
+        "gridPos": {"x": 18, "y": 0, "w": 6, "h": 4},
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "custom": {}
+          }
+        }
+      },
+      {
+        "type": "timeseries",
+        "title": "Sea Surface Temperature Trend",
+        "targets": [
+          {"expr": "ocean_avg_sst_celsius"}
+        ],
+        "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8},
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "custom": {}
+          }
+        }
+      },
+      {
+        "type": "timeseries",
+        "title": "pH Level Trend",
+        "targets": [
+          {"expr": "ocean_avg_ph"}
+        ],
+        "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8},
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "custom": {}
+          }
+        }
       }
     ],
-    "schemaVersion": 16
+    "schemaVersion": 35,
+    "version": 1,
+    "refresh": "30s",
+    "time": {
+      "from": "now-6h",
+      "to": "now"
+    }
   }
 }

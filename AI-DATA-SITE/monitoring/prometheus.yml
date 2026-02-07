@@ -4,18 +4,18 @@ global:
 scrape_configs:
   - job_name: 'ai_ocean_app'
     static_configs:
-      - targets: ['localhost:8000']
+      - targets: ['172.18.0.1:8000']
         labels:
           role: backend
 
   - job_name: 'ai_ocean_metrics'
     static_configs:
-      - targets: ['localhost:8002']
+      - targets: ['172.18.0.1:8002']
         labels:
           role: metrics
 
   - job_name: 'ai_frontend'
     static_configs:
-      - targets: ['localhost:8501']
+      - targets: ['172.18.0.1:8501']
         labels:
           role: frontend
