@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 import streamlit as st
 import pandas as pd
 import pydeck as pdk
@@ -14,7 +17,7 @@ st.title("Coral Reef Health Monitor")
 st.markdown("Real-time AI-powered ocean health monitoring")
 
 # API Base URL
-API_URL = "http://localhost:8003"
+API_URL = "http://localhost:8000"
 
 # Sidebar
 with st.sidebar:
