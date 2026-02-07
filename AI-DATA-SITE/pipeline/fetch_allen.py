@@ -7,8 +7,21 @@ from pathlib import Path
 from dotenv import load_dotenv
 import time
 
-def _retry_get(url, params=None, headers=None, timeout=60, max_retries=3, backoff_factor=2):
-    """HTTP GET with exponential backoff retry logic."""
+# Try to import metrics; if not available, create no-op stubs
+try:
+    from monitoring.metrics import pipeline_fetches_total, pipeline_fetch_retries, pipeline_fetch_failures
+    _metrics_available = True
+except ImportError:
+    _metrics_available = False
+    pipeline_fetches_total = None
+    pipeline_fetch_retries = None
+    pipeline_fetch_failures = None
+
+def _retry_get(url, params=None, headers=None, timeout=60, max_retries=3, backoff_factor=2, source="allen"):
+    """HTTP GET with exponential backoff retry logic and metrics."""
+    if _metrics_available and pipeline_fetches_total:
+        pipeline_fetches_total.labels(source=source).inc()
+    
     for attempt in range(max_retries):
         try:
             r = requests.get(url, params=params, headers=headers, timeout=timeout)
@@ -16,6 +29,8 @@ def _retry_get(url, params=None, headers=None, timeout=60, max_retries=3, backof
                 return r
             elif r.status_code in (429, 503):  # Too Many Requests, Service Unavailable
                 if attempt < max_retries - 1:
+                    if _metrics_available and pipeline_fetch_retries:
+                        pipeline_fetch_retries.labels(source=source, reason=f"http_{r.status_code}").inc()
                     wait_time = backoff_factor ** attempt
                     print(f"[fetch] HTTP {r.status_code}, retrying in {wait_time}s...")
                     time.sleep(wait_time)
@@ -23,6 +38,8 @@ def _retry_get(url, params=None, headers=None, timeout=60, max_retries=3, backof
             return None
         except requests.exceptions.Timeout:
             if attempt < max_retries - 1:
+                if _metrics_available and pipeline_fetch_retries:
+                    pipeline_fetch_retries.labels(source=source, reason="timeout").inc()
                 wait_time = backoff_factor ** attempt
                 print(f"[fetch] Timeout, retrying in {wait_time}s...")
                 time.sleep(wait_time)
@@ -30,6 +47,8 @@ def _retry_get(url, params=None, headers=None, timeout=60, max_retries=3, backof
             return None
         except requests.exceptions.ConnectionError:
             if attempt < max_retries - 1:
+                if _metrics_available and pipeline_fetch_retries:
+                    pipeline_fetch_retries.labels(source=source, reason="connection_error").inc()
                 wait_time = backoff_factor ** attempt
                 print(f"[fetch] Connection error, retrying in {wait_time}s...")
                 time.sleep(wait_time)
@@ -37,11 +56,17 @@ def _retry_get(url, params=None, headers=None, timeout=60, max_retries=3, backof
             return None
         except Exception as e:
             if attempt < max_retries - 1:
+                if _metrics_available and pipeline_fetch_retries:
+                    pipeline_fetch_retries.labels(source=source, reason=type(e).__name__).inc()
                 wait_time = backoff_factor ** attempt
                 print(f"[fetch] Error ({type(e).__name__}), retrying in {wait_time}s...")
                 time.sleep(wait_time)
                 continue
             return None
+    
+    # All retries exhausted
+    if _metrics_available and pipeline_fetch_failures:
+        pipeline_fetch_failures.labels(source=source).inc()
     return None
 
 load_dotenv(Path(__file__).resolve().parents[1] / ".env")
