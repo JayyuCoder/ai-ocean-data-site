@@ -98,6 +98,14 @@ def run_light_pipeline():
             forecast_ph=rec.get("forecast_ph", None),
         )
         session.add(om)
+    try:
+        session.commit()
+        print(f"[light pipeline] Inserted {len(records)} rows")
+    except Exception as e:
+        session.rollback()
+        print(f"[light pipeline] Error committing rows: {e}")
+    finally:
+        session.close()
     session.commit()
     session.close()
 
