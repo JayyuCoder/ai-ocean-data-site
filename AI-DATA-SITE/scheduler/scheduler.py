@@ -36,12 +36,25 @@ if pipeline is not None:
         except Exception as e:
             logger.exception('Pipeline failed: %s', e)
 
-    scheduler.add_job(
-        job_wrapper,
-        trigger="cron",
-        hour=int(os.getenv("SCHED_HOUR", "6")),
-        minute=int(os.getenv("SCHED_MIN", "0")),
-    )
+    # Run every hour for live data updates (can set SCHED_MODE=daily for daily at 6 AM)
+    sched_mode = os.getenv("SCHED_MODE", "hourly")
+    
+    if sched_mode == "daily":
+        logger.info(f"Scheduling pipeline daily at {os.getenv('SCHED_HOUR', '6')}:{os.getenv('SCHED_MIN', '0')}")
+        scheduler.add_job(
+            job_wrapper,
+            trigger="cron",
+            hour=int(os.getenv("SCHED_HOUR", "6")),
+            minute=int(os.getenv("SCHED_MIN", "0")),
+        )
+    else:  # hourly (default for live)
+        logger.info("Scheduling pipeline every hour for live data updates")
+        scheduler.add_job(
+            job_wrapper,
+            trigger="interval",
+            hours=1,
+            start_date="2026-02-07 00:00:00"
+        )
 
 if __name__ == "__main__":
     logger.info('Scheduler starting')
